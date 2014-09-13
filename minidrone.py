@@ -58,10 +58,10 @@ class ReaderThread(StoppableThread):
                 elif index == 1:
                     dronedict.process_battery(self.drone, self.reader.after)
                 elif index == 2:
-                    self.drone.cb(5, 'y')
-                    self.drone.cb(6, str(self.drone.speed))
+                    self.drone.cb(4, 'y')
+                    self.drone.cb(3, str(self.drone.speed))
                 elif index > 2:
-                    self.drone.cb(5, 'n')
+                    self.drone.cb(4, 'n')
             else:
                 self.reader.terminate(True)
                 break
@@ -109,11 +109,8 @@ class MiniDrone(object):
         self.seq_joy = 1 # 0x0040
         self.seq_ref = 0 # 0x0043
         self.timer_t = 0.3
+        self.settings = dict()
         self.speed = 30
-        self.serial = ''
-        self.battery = ''
-        self.did = ''
-        self.fwhw = ''
         self.status = S.Disconnected
         self.q = Queue()
         self.t_writer = WriterThread(self)
@@ -200,12 +197,12 @@ class MiniDrone(object):
     def incr_speed(self):
         if self.speed < 100:
             self.speed += 10
-        self.cb(6, str(self.speed))
+        self.cb(3, str(self.speed))
 
     def decr_speed(self):
         if self.speed > 0:
             self.speed -= 10
-        self.cb(6, str(self.speed))
+        self.cb(3, str(self.speed))
 
     def takeoff(self):
         self.cb(0, "Taking off!")
@@ -231,7 +228,7 @@ class MiniDrone(object):
 
     def wheels_on(self, wheels):
         self.send_ref('02010200' + ('01' if wheels else '00'))
-        self.cb(7, 'On' if wheels else 'Off')
+        self.settings['wheels'] = 'On' if wheels else 'Off'
 
     def send_joy(self, hor_lr, hor_fb, rot, vert):
         handle = '0x0040'

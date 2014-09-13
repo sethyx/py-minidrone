@@ -15,69 +15,54 @@ S_CONNECTED = 2
 DRONEMAC = 'A0:14:3D:28:D6:A9'
 CB_MSG = 0
 CB_BATTERY = 1
-CB_ID = 2
-CB_SERIAL = 3
-CB_FW_HW = 4
-CB_STATE = 5
-CB_SPEED = 6
-CB_WHEELS = 7
+CB_DATA_UPDATE = 2
+CB_SPEED = 3
+CB_STATE = 4
 
 mutex = threading.Lock()
 
-def refresh_data(t, msg):
-    global message, battery, did, serial, fw, hw, state, speed, wheels
+def refresh_data(t, data):
+    global message, config, battery, speed, state
     if t == CB_MSG:
         mutex.acquire()
-        message = msg
+        message = data
         mutex.release()
     elif t == CB_BATTERY:
         mutex.acquire()
-        battery = msg
-        mutex.release()
-    elif t == CB_ID:
-        mutex.acquire()
-        did = msg
-        mutex.release()
-    elif t == CB_FW_HW:
-        mutex.acquire()
-        (fw, hw) = msg.split('|')
-        mutex.release()
-    elif t == CB_STATE:
-        mutex.acquire()
-        state = S_CONNECTED if msg == 'y' else S_DISCONNECTED
-        mutex.release()
-    elif t == CB_SERIAL:
-        mutex.acquire()
-        serial = msg
+        battery = data
         mutex.release()
     elif t == CB_SPEED:
         mutex.acquire()
-        speed = msg
+        speed = data
         mutex.release()
-    elif t == CB_WHEELS:
+    elif t == CB_DATA_UPDATE:
         mutex.acquire()
-        wheels = msg
+        config = data
+        mutex.release()
+    elif t == CB_STATE:
+        mutex.acquire()
+        state = S_CONNECTED if data == 'y' else S_DISCONNECTED
         mutex.release()
 
 def draw_joy(win):
     win.erase()
-    for i in range(0, 7):
-        win.addch(i, 7, '|')
-    win.addstr(3, 1, '----- o -----')
+    for i in range(0, 5):
+        win.addch(i, 5, '|')
+    win.addstr(2, 0, '---- o ----')
     win.refresh()
 
 def hl_dir(win, dir):
     if dir in [curses.KEY_UP, ord('w')]:
-        for i in range(0, 3):
-            win.chgat(i, 7, 1, curses.color_pair(1))
+        for i in range(0, 2):
+            win.chgat(i, 5, 1, curses.color_pair(1))
     elif dir in [curses.KEY_DOWN, ord('s')]:
-        for i in range(4, 7):
-            win.chgat(i, 7, 1, curses.color_pair(1))
+        for i in range(3, 5):
+            win.chgat(i, 5, 1, curses.color_pair(1))
     elif dir in [curses.KEY_LEFT, ord('a')]:
-        win.chgat(3, 1, 5, curses.color_pair(1))
+        win.chgat(2, 0, 4, curses.color_pair(1))
     elif dir in [curses.KEY_RIGHT, ord('d')]:
-        win.chgat(3, 9, 5, curses.color_pair(1))
-    win.chgat(3, 7, 1, curses.color_pair(2))
+        win.chgat(2, 7, 4, curses.color_pair(1))
+    win.chgat(2, 5, 1, curses.color_pair(2))
     win.refresh()
 
 def move_drone(event):
@@ -120,15 +105,15 @@ def main_loop(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-    w_status = win.subwin(7, 80, 0, 0)
-    w_help = win.subwin(5, 80, 19, 0)
-    w_leftjoy = win.subwin(7, 15, 9, 12)
-    w_rightjoy = win.subwin(7, 15, 9, 52)
+    w_status = win.subwin(9, 80, 0, 0)
+    w_help = win.subwin(6, 80, 18, 0)
+    w_leftjoy = win.subwin(5, 11, 11, 13)
+    w_rightjoy = win.subwin(5, 11, 11, 55)
     w_status.box()
     w_help.box()
-    w_help.vline(1, 39, '|', 3)
-    w_help.vline(1, 59, '|', 3)
-    w_help.addstr(1, 2, "W-A-S-D: Move horizontally")
+    w_help.vline(1, 39, '|', 4)
+    w_help.vline(1, 59, '|', 4)
+    w_help.addstr(1, 2, "w-a-s-d: Move horizontally")
     w_help.addstr(1, 41, "Space: Take off")
     w_help.addstr(2, 41, "Enter: Land")
     w_help.addstr(3, 41, "Emergency: Esc")
@@ -137,26 +122,31 @@ def main_loop(stdscr):
     w_help.addstr(1, 61, "Connect: c")
     w_help.addstr(2, 61, "Disconnect: x")
     w_help.addstr(3, 61, "Quit: q")
+    w_help.addstr(4, 2, "u: Update config")
+    w_help.addstr(4, 41, "Whatever")
     win.box()
     win.addstr(0, 25, " MiniDrone remote controller ")
-    w_status.vline(1, 39, '|', 3)
-    w_status.hline(4, 1, '-', 78)
+    w_status.vline(1, 39, '|', 5)
+    w_status.hline(6, 1, '-', 78)
     w_status.addstr(2, 2, "Battery: ")
     w_status.addstr(1, 2, "ID: ")
     w_status.addstr(1, 41, "Serial: ")
     w_status.addstr(2, 41, "FW/HW ver: ")
     w_status.addstr(3, 2, "Speed: ")
     w_status.addstr(3, 41, "Wheels: ")
-    w_status.addstr(5, 2, "Status: ")
+    w_status.addstr(4, 2, "MaxAlt: ")
+    w_status.addstr(4, 41, "MaxTilt: ")
+    w_status.addstr(5, 2, "MaxVert: ")
+    w_status.addstr(5, 41, "MaxRot: ")
+    w_status.addstr(7, 2, "Status: ")
     win.refresh()
     global state
     while True:
         mutex.acquire()
         s = state
-        w_status.addstr(5, 10, message + (68-len(message))*' ')
+        w_status.addstr(7, 10, message + (68-len(message))*' ')
         mutex.release()
         w_status.refresh()
-
         if s == S_DISCONNECTED:
             event = screen.getch()
             if event == ord('q'):
@@ -175,10 +165,10 @@ def main_loop(stdscr):
             mutex.acquire()
             w_status.addstr(2, 11, battery + '%  ')
             w_status.addstr(3, 9, speed + '%  ')
-            w_status.addstr(3, 49, wheels + '  ')
-            w_status.addstr(1, 6, did)
-            w_status.addstr(1, 49, serial)
-            w_status.addstr(2, 52, fw + ', ' + hw)
+            w_status.addstr(3, 49, config['wheels'] + '  ')
+            w_status.addstr(1, 6, config['name'])
+            w_status.addstr(1, 49, config['serial'])
+            w_status.addstr(2, 52, config['fw'] + ', ' + config['hw'])
             mutex.release()
             w_status.refresh()
             event = screen.getch()
@@ -192,9 +182,9 @@ def main_loop(stdscr):
             curses.napms(70)
 
 if __name__ == '__main__':
-    global state, message, battery, drone, did, fw, hw, serial
+    global drone, state, message, speed, battery
     state = S_DISCONNECTED
-    battery = did = fw = hw = serial = message = ''
+    message = speed = battery = ''
     drone = minidrone.MiniDrone(mac=DRONEMAC, callback=refresh_data)
     curses.wrapper(main_loop)
     drone.die()
