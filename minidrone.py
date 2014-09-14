@@ -226,9 +226,13 @@ class MiniDrone(object):
         for i in range(1, 3):
             self.send_ref('0004' + ('%02x' % i) + '00' + times[i-1] + '00')
 
-    def wheels_on(self, wheels):
+    def wheels(self, wheels):
         self.send_ref('02010200' + ('01' if wheels else '00'))
-        self.settings['wheels'] = 'On' if wheels else 'Off'
+        self.settings[dronedict.S_WHEELS] = wheels
+
+    def cutout(self, cutout):
+        self.send_ref('020a0000' + ('01' if cutout else '00'))
+        self.settings[dronedict.S_CUTOUT] = cutout
 
     def send_joy(self, hor_lr, hor_fb, rot, vert):
         handle = '0x0040'
@@ -273,7 +277,8 @@ class MiniDrone(object):
         self.send_ref('00020000')
         time.sleep(1.2)
         self.send_ref('00040000')
-        self.wheels_on(False)
+        self.wheels(True)
+        self.cutout(True)
 
     def send_ack(self, seq):
         handle = '0x007c'
@@ -301,12 +306,6 @@ def time_bin():
 def merge_moves(hor_lr, hor_fb, rot, vert):
     t = '01' if (hor_lr != 0 or hor_fb != 0) else '00'
     return t + sp2b(hor_lr) + sp2b(hor_fb) + sp2b(rot) + sp2b(vert)
-
-def val2hexs(f_val):
-   return format(struct.unpack('<I', struct.pack('!f', f_val))[0], '08x')
-
-def hex2vals(x_val):
-   return format(struct.unpack('!f', struct.pack('<I', int(x_val, 16)))[0], '.6f')
 
 def config_value(type, seq, value):
     result = "04" + seq

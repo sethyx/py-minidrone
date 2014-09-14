@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 
 import ConfigParser
+import dronedict
 
 CONFIG_FILE = 'drone.conf'
 SECTION = 'drone'
-SPEED = 'speed'
-MAX_ALT = 'max_altitude'
-MAX_ROT_SPEED = 'max_rotation_speed'
-MAX_TILT = 'max_tilt'
-MAX_VERT_SPEED = 'max_vertical_speed'
-WHEELS = 'wheels'
 
 class C(object):
 
@@ -20,44 +15,44 @@ class C(object):
 	def flush(self):
 		self.config.write(open(CONFIG_FILE, 'w'))
 
-	def get_speed(self):
-		return self.config.getint(SECTION, SPEED)
-
 	def get_max_alt(self):
-		return self.config.getfloat(SECTION, MAX_ALT)
+		return self.config.getfloat(SECTION, dronedict.S_MAX_ALT)
 
 	def get_max_rot_speed(self):
-		return self.config.getfloat(SECTION, MAX_ROT_SPEED)
+		return self.config.getfloat(SECTION, dronedict.S_MAX_ROT)
 
 	def get_max_tilt(self):
-		return self.config.getfloat(SECTION, MAX_TILT)
+		return self.config.getfloat(SECTION, dronedict.S_MAX_TILT)
 
 	def get_max_vert_speed(self):
-		return self.config.getfloat(SECTION, MAX_VERT_SPEED)
+		return self.config.getfloat(SECTION, dronedict.S_MAX_VERT)
 
 	def get_wheels(self):
-		return self.config.getboolean(SECTION, WHEELS)
+		return self.config.getboolean(SECTION, dronedict.S_WHEELS)
 
-	def set_speed(self, value):
-		self.config.set(SECTION, SPEED, value)
-		self.flush()
+	def get_cutoff(self):
+		return self.config.getboolean(SECTION, dronedict.S_CUTOUT)
 
 	def set_max_alt(self, value):
-		self.config.set(SECTION, MAX_ALT, value)
+		self.config.set(SECTION, dronedict.S_MAX_ALT, value)
 		self.flush()
 
 	def set_max_rot_speed(self, value):
-		self.config.set(SECTION, MAX_ROT_SPEED, value)
+		self.config.set(SECTION, dronedict.S_MAX_ROT_SPEED, value)
 		self.flush()
 
 	def set_max_tilt(self, value):
-		self.config.set(SECTION, MAX_TILT, value)
+		self.config.set(SECTION, dronedict.S_MAX_TILT, value)
 		self.flush()
 
 	def set_max_vert_speed(self, value):
-		self.config.set(SECTION, MAX_VERT_SPEED, value)
+		self.config.set(SECTION, dronedict.S_MAX_VERT_SPEED, value)
 		self.flush()
 
 	def set_wheels(self, value):
-		self.config.set(SECTION, WHEELS, value)
+		self.config.set(SECTION, dronedict.S_WHEELS, value)
+		self.flush()
+
+	def set_cutoff(self, value):
+		self.config.set(SECTION, dronedict.S_CUTOUT, value)
 		self.flush()
