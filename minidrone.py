@@ -228,11 +228,9 @@ class MiniDrone(object):
 
     def wheels(self, wheels):
         self.send_ref('02010200' + ('01' if wheels else '00'))
-        self.settings[dronedict.S_WHEELS] = wheels
 
     def cutout(self, cutout):
         self.send_ref('020a0000' + ('01' if cutout else '00'))
-        self.settings[dronedict.S_CUTOUT] = cutout
 
     def send_joy(self, hor_lr, hor_fb, rot, vert):
         handle = '0x0040'
@@ -277,6 +275,7 @@ class MiniDrone(object):
         self.send_ref('00020000')
         time.sleep(1.2)
         self.send_ref('00040000')
+        time.sleep(2)
         self.wheels(True)
         self.cutout(True)
 

@@ -4,6 +4,7 @@ import curses
 import time
 import threading
 import minidrone
+import dronedict
 
 right_events = [curses.KEY_RIGHT, curses.KEY_LEFT, curses.KEY_UP, curses.KEY_DOWN]
 left_events = [ord('d'), ord('a'), ord('w'), ord('s')]
@@ -116,14 +117,15 @@ def main_loop(stdscr):
     w_help.addstr(1, 2, "w-a-s-d: Move horizontally")
     w_help.addstr(1, 41, "Space: Take off")
     w_help.addstr(2, 41, "Enter: Land")
-    w_help.addstr(3, 41, "Emergency: Esc")
+    w_help.addstr(1, 61, "Esc: Emergency")
     w_help.addstr(3, 2, "+/-: Incr/decr speed")
     w_help.addstr(2, 2, "Arrows: Move vertically & rotate")
-    w_help.addstr(1, 61, "Connect: c")
-    w_help.addstr(2, 61, "Disconnect: x")
-    w_help.addstr(3, 61, "Quit: q")
+    w_help.addstr(2, 61, "c: Connect")
+    w_help.addstr(3, 61, "x: Disconnect")
+    w_help.addstr(4, 61, "q: Quit")
     w_help.addstr(4, 2, "u: Update config")
-    w_help.addstr(4, 41, "Whatever")
+    w_help.addstr(3, 41, "i: Toggle Wheels")
+    w_help.addstr(4, 41, "o: Toggle CutOut")
     win.box()
     win.addstr(0, 25, " MiniDrone remote controller ")
     w_status.vline(1, 39, '|', 5)
@@ -163,16 +165,17 @@ def main_loop(stdscr):
             draw_joy(w_rightjoy)
             win.chgat(0, 26, 27, curses.color_pair(1))
             mutex.acquire()
-            w_status.addstr(2, 11, battery + '%  ')
-            w_status.addstr(3, 9, speed + '%  ')
-            w_status.addstr(3, 49, dronedict.onoff(config['wheels']) + '/' + dronedict.onoff(config['cutout']))
-            w_status.addstr(1, 6, config['name'])
-            w_status.addstr(1, 49, config['serial'])
-            w_status.addstr(2, 52, config['fw'] + ', ' + config['hw'])
-            w_status.addstr(4, 10, dronedict.get_pretty(config, dronedict.S_MAX_ALT))
-            w_status.addstr(4, 50, dronedict.get_pretty(config, dronedict.S_MAX_TILT))
-            w_status.addstr(5, 11, dronedict.get_pretty(config, dronedict.S_MAX_VERT))
-            w_status.addstr(5, 10, dronedict.get_pretty(config, dronedict.S_MAX_ROT))
+            if len(config) >= 10:
+                w_status.addstr(2, 11, battery + '%  ')
+                w_status.addstr(3, 9, speed + '%  ')
+                w_status.addstr(3, 56, dronedict.onoff(config['wheels']) + '/' + dronedict.onoff(config['cutout']) + '  ')
+                w_status.addstr(1, 6, config['name'])
+                w_status.addstr(1, 49, config['serial'])
+                w_status.addstr(2, 52, config['fw'] + ', ' + config['hw'])
+                w_status.addstr(4, 10, dronedict.get_pretty(config, dronedict.S_MAX_ALT) + '  ')
+                w_status.addstr(4, 50, dronedict.get_pretty(config, dronedict.S_MAX_TILT) + '  ')
+                w_status.addstr(5, 11, dronedict.get_pretty(config, dronedict.S_MAX_VERT) + '  ')
+                w_status.addstr(5, 49, dronedict.get_pretty(config, dronedict.S_MAX_ROT) + '  ')
             mutex.release()
             w_status.refresh()
             event = screen.getch()
@@ -183,12 +186,17 @@ def main_loop(stdscr):
                 hl_dir(w_rightjoy, event)
             elif event in left_events:
                 hl_dir(w_leftjoy, event)
+            elif event == ord('o'):
+                drone.cutout(not config['cutout'])
+            elif event == ord('i'):
+                drone.wheels(not config['wheels'])
             curses.napms(70)
 
 if __name__ == '__main__':
-    global drone, state, message, speed, battery
+    global drone, state, message, config, speed, battery
     state = S_DISCONNECTED
     message = speed = battery = ''
+    config = dict()
     drone = minidrone.MiniDrone(mac=DRONEMAC, callback=refresh_data)
     curses.wrapper(main_loop)
     drone.die()
