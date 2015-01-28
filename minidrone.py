@@ -71,7 +71,7 @@ class WriterThread(StoppableThread):
     def __init__(self, drone):
         StoppableThread.__init__(self)
         self.drone = drone
-        self.gatt = pexpect.spawn(drone.gatttool_path + ' -b ' + drone.mac + ' -I', echo=False)
+        self.gatt = pexpect.spawn(drone.gatttool_path + ' -b ' + drone.mac + ' -I -t random', echo=False)
         self.t_reader = ReaderThread(drone, self.gatt)
         self.t_reader.daemon = True
 
