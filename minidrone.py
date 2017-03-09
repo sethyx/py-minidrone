@@ -3,7 +3,7 @@
 import time
 import pexpect
 import threading
-from Queue import Queue
+from queue import Queue
 import binascii
 import os
 import re
