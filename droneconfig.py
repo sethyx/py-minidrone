@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import ConfigParser
+from configparser import ConfigParser
 import dronedict
 
 CONFIG_FILE = 'drone.conf'
